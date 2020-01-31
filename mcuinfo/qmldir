@@ -1,2 +1,2 @@
-module com.mycompany.qmlcomponents
+module McuInfo
 plugin mcuplugin
