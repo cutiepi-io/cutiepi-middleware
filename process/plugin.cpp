@@ -13,9 +13,9 @@ public:
 	{
 	}
 
-	~ProcessModel()
-	{
-	}
+        ~ProcessModel()
+        {
+        }
 
         Q_INVOKABLE void start(const QString &program, const QVariantList &arguments) {
             QStringList args;
@@ -30,7 +30,7 @@ public:
         Q_INVOKABLE QByteArray readAll() {
             return QProcess::readAll();
         }
-	Q_INVOKABLE void cmd(const QString &s) {
+	Q_INVOKABLE void startDetached(const QString &s) {
 		qDebug() << s;
                 QProcess::startDetached(s);
 	}
