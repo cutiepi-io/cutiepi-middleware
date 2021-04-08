@@ -19,6 +19,8 @@ public:
     ~McuInfo();
 
     Q_INVOKABLE void start();
+    Q_INVOKABLE void confirmShutdown();
+    Q_INVOKABLE void cancelShutdown();
 
     int battery() const {return m_data;}
     int button() const {return m_data;}
@@ -45,6 +47,7 @@ private:
     bool m_status;
     QSerialPort m_serialPort;
     QByteArray m_readData;
+    QByteArray m_payload;
 
     int pos=0;
     int checksum=0;

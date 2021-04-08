@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import com.mycompany.qmlcomponents 1.0
+import McuInfo 1.0
 
 Rectangle {
     width: 500; height: 200

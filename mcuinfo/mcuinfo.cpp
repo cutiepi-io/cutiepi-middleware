@@ -18,8 +18,8 @@ void McuInfo::start()
 {
     qDebug()<<"opening serial port"<<m_portName<<m_portBaudRate;
     m_serialPort.setPortName(m_portName);
-    m_serialPort.setBaudRate(m_portBaudRate);
-    if(m_serialPort.open(QIODevice::ReadOnly))
+    m_serialPort.setBaudRate(m_portBaudRate, QSerialPort::AllDirections);
+    if(m_serialPort.open(QIODevice::ReadWrite))
     {
         connect(&m_serialPort, &QSerialPort::readyRead, this, &McuInfo::handleReadyRead);
         connect(&m_serialPort, &QSerialPort::errorOccurred, this, &McuInfo::handleError);
@@ -31,6 +31,56 @@ void McuInfo::start()
     }
 
     emit statusChanged();
+}
+
+void McuInfo::confirmShutdown() 
+{
+    m_payload.resize(6);
+
+    // header 
+    m_payload[0] = 0xA5;
+    m_payload[1] = 0x5A;
+
+    // payload length 
+    m_payload[2] = 1;
+    m_payload[3] = 0;
+
+    // payload: confirm shutdown 
+    m_payload[4] = 0xF3;
+
+    // CRC
+    m_payload[5] = 0; 
+    for (int i = 0; i < 5; i++)
+        m_payload[5] = (m_payload[5] + m_payload[i]);
+
+    // write to UART 
+    m_serialPort.write(m_payload);
+    m_serialPort.flush();
+}
+
+void McuInfo::cancelShutdown() 
+{
+    m_payload.resize(6);
+
+    // header 
+    m_payload[0] = 0xA5;
+    m_payload[1] = 0x5A;
+
+    // payload length 
+    m_payload[2] = 1;
+    m_payload[3] = 0;
+
+    // payload: cancel shutdown 
+    m_payload[4] = 0xFC;
+
+    // CRC
+    m_payload[5] = 0;
+    for (int i = 0; i < 5; i++)
+        m_payload[5] = (m_payload[5] + m_payload[i]);
+
+    // write to UART 
+    m_serialPort.write(m_payload);
+    m_serialPort.flush();
 }
 
 void McuInfo::handleReadyRead()
@@ -88,6 +138,22 @@ void McuInfo::handleReadyRead()
         case 5: // checksum
             if(c == (255 & checksum)){// correct uart msg received
                 ExecuteCommand();
+
+                // ACK for short click 
+                if( (m_cmd == 1) && (m_data ==1)) {
+                    m_payload.resize(6);
+
+                    m_payload[0] = 0xA5;
+                    m_payload[1] = 0x5A;
+                    m_payload[2] = 1;
+                    m_payload[3] = 0;
+                    m_payload[4] = 0xF1;
+                    m_payload[5] = 0;
+                    for (int i = 0; i < 5; i++)
+                        m_payload[5] = (m_payload[5] + m_payload[i]);
+                    m_serialPort.write(m_payload);
+                    m_serialPort.flush();
+                }
             }
             else{
                 printf("checksum wrong!\n");
