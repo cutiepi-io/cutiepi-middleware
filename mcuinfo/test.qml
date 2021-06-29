@@ -9,7 +9,7 @@ Rectangle {
         id: batteryInfo
         text: mcuInfo.battery
         y: 30
-        anchors.horizontalCenter: page.horizontalCenter
+        anchors.horizontalCenter: parent.horizontalCenter
         font.pointSize: 24; font.bold: true
     }
 

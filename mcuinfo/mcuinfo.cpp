@@ -3,11 +3,6 @@
 McuInfo::McuInfo(QQuickItem *parent):
     QQuickItem(parent)
 {
-    // By default, QQuickItem does not draw anything. If you subclass
-    // QQuickItem to create a visual item, you will need to uncomment the
-    // following line and re-implement updatePaintNode()
-
-    // setFlag(ItemHasContents, true);
 }
 
 McuInfo::~McuInfo()
@@ -35,23 +30,26 @@ void McuInfo::start()
 
 void McuInfo::confirmShutdown() 
 {
-    m_payload.resize(6);
+    m_payload.resize(7);
 
     // header 
     m_payload[0] = 0xA5;
     m_payload[1] = 0x5A;
 
-    // payload length 
+    // msg type
     m_payload[2] = 1;
-    m_payload[3] = 0;
+
+    // payload length 
+    m_payload[3] = 1;
+    m_payload[4] = 0;
 
     // payload: confirm shutdown 
-    m_payload[4] = 0xF3;
+    m_payload[5] = 0xF3;
 
     // CRC
-    m_payload[5] = 0; 
-    for (int i = 0; i < 5; i++)
-        m_payload[5] = (m_payload[5] + m_payload[i]);
+    m_payload[6] = 0; 
+    for (int i = 0; i < 6; i++)
+        m_payload[6] = (m_payload[6] + m_payload[i]);
 
     // write to UART 
     m_serialPort.write(m_payload);
@@ -60,23 +58,26 @@ void McuInfo::confirmShutdown()
 
 void McuInfo::cancelShutdown() 
 {
-    m_payload.resize(6);
+    m_payload.resize(7);
 
     // header 
     m_payload[0] = 0xA5;
     m_payload[1] = 0x5A;
 
-    // payload length 
+    // msg type 
     m_payload[2] = 1;
-    m_payload[3] = 0;
+
+    // payload length 
+    m_payload[3] = 1;
+    m_payload[4] = 0;
 
     // payload: cancel shutdown 
-    m_payload[4] = 0xFC;
+    m_payload[5] = 0xFC;
 
     // CRC
-    m_payload[5] = 0;
-    for (int i = 0; i < 5; i++)
-        m_payload[5] = (m_payload[5] + m_payload[i]);
+    m_payload[6] = 0;
+    for (int i = 0; i < 6; i++)
+        m_payload[6] = (m_payload[6] + m_payload[i]);
 
     // write to UART 
     m_serialPort.write(m_payload);
@@ -86,7 +87,6 @@ void McuInfo::cancelShutdown()
 void McuInfo::handleReadyRead()
 {
     m_readData = m_serialPort.readAll();
-
 
     for(int i=0; i<m_readData.length(); i++){
         bool ok;
@@ -117,51 +117,74 @@ void McuInfo::handleReadyRead()
             }
             break;
 
-        case 2: // cmd
+        case 2: // msg type 
             m_cmd = c;
             checksum += c;
             pos++;
             break;
 
-        case 3: //data_msb
-            m_data = 256*c;
+        case 3: // length of msg payload
+            payloadLength = c;
             checksum += c;
             pos++;
             break;
 
-        case 4: //data_lsb
+        case 4: // length of msg payload
+            payloadLength += 256 * c;
+            m_data = 0;
+            checksum += c;
+            pos++;
+            break;
+
+        case 5: //data 
             m_data += c;
             checksum += c;
             pos++;
             break;
 
-        case 5: // checksum
+        case 6: 
+            if (payloadLength == 2) { //data_msb
+                m_data += 256 * c;
+                checksum += c;
+                pos++;
+            } else { // checksum 
+                if (c == (255 & checksum)) { // correct uart msg received
+                    ExecuteCommand();
+                    // ACK for short click
+                    if( (m_cmd == 1) && (m_data ==1)) {
+                        m_payload.resize(7);
+
+                        m_payload[0] = 0xA5;
+                        m_payload[1] = 0x5A;
+                        m_payload[2] = 1;
+                        m_payload[3] = 1;
+                        m_payload[4] = 0;
+                        m_payload[5] = 0xF1;
+                        m_payload[6] = 0;
+                        for (int i = 0; i < 6; i++)
+                            m_payload[6] = (m_payload[6] + m_payload[i]);
+                        m_serialPort.write(m_payload);
+                        m_serialPort.flush();
+                    }
+                } else {
+                    printf("checksum wrong!\n");
+                }
+                pos = 0;
+                checksum = 0;
+                payloadLength = 0;
+            }
+            break;
+        case 7: // checksum
             if(c == (255 & checksum)){// correct uart msg received
                 ExecuteCommand();
-
-                // ACK for short click 
-                if( (m_cmd == 1) && (m_data ==1)) {
-                    m_payload.resize(6);
-
-                    m_payload[0] = 0xA5;
-                    m_payload[1] = 0x5A;
-                    m_payload[2] = 1;
-                    m_payload[3] = 0;
-                    m_payload[4] = 0xF1;
-                    m_payload[5] = 0;
-                    for (int i = 0; i < 5; i++)
-                        m_payload[5] = (m_payload[5] + m_payload[i]);
-                    m_serialPort.write(m_payload);
-                    m_serialPort.flush();
-                }
             }
             else{
                 printf("checksum wrong!\n");
             }
             pos = 0;
             checksum = 0;
+            payloadLength = 0;
             break;
-
         }
     }
 
@@ -180,6 +203,7 @@ void McuInfo::ExecuteCommand()
         break;
 
     case 3: //charging
+        emit chargeChanged();
         break;
     }
 }
