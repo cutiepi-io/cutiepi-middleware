@@ -186,7 +186,7 @@ void McuInfo::handleReadyRead()
 
             break;
 
-        case 7: // checksum
+        case 6: // checksum
             if(c == (255 & checksum)){// correct uart msg received
                 ExecuteCommand();
             }
