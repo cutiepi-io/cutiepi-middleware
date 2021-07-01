@@ -132,6 +132,7 @@ void McuInfo::handleReadyRead()
         case 4: // length of msg payload
             payloadLength += 256 * c;
             m_data = 0;
+            data_bytes = 0;
             checksum += c;
             pos++;
             break;
@@ -176,10 +177,10 @@ void McuInfo::handleReadyRead()
         //     break;
         case 5:
             checksum += c;
-            m_data += (c << payloadLength*8);
-            payloadLength++;
+            m_data += (c << data_bytes*8);
+            data_bytes++;
 
-            if(payloadLength >= payloadLength){
+            if(data_bytes >= payloadLength){
                 // full data is received regardless number of bytes
                 pos++;
             }
