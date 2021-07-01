@@ -55,7 +55,9 @@ private:
     int pos=0;
     int checksum=0;
     int m_cmd=0;
-    int m_data=0;
+    // int m_data=0;
+    long m_data=0;
+    int data_bytes=0;
     int payloadLength=0;
 
     void handleReadyRead();

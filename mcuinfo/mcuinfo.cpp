@@ -136,44 +136,56 @@ void McuInfo::handleReadyRead()
             pos++;
             break;
 
-        case 5: //data 
-            m_data += c;
+        // case 5: //data 
+        //     m_data += c;
+        //     checksum += c;
+        //     pos++;
+        //     break;
+
+        // case 6: 
+        //     if (payloadLength == 2) { //data_msb
+        //         m_data += 256 * c;
+        //         checksum += c;
+        //         pos++;
+        //     } else { // checksum 
+        //         if (c == (255 & checksum)) { // correct uart msg received
+        //             ExecuteCommand();
+        //             // ACK for short click
+        //             if( (m_cmd == 1) && (m_data ==1)) {
+        //                 m_payload.resize(7);
+
+        //                 m_payload[0] = 0xA5;
+        //                 m_payload[1] = 0x5A;
+        //                 m_payload[2] = 1;
+        //                 m_payload[3] = 1;
+        //                 m_payload[4] = 0;
+        //                 m_payload[5] = 0xF1;
+        //                 m_payload[6] = 0;
+        //                 for (int i = 0; i < 6; i++)
+        //                     m_payload[6] = (m_payload[6] + m_payload[i]);
+        //                 m_serialPort.write(m_payload);
+        //                 m_serialPort.flush();
+        //             }
+        //         } else {
+        //             printf("checksum wrong!\n");
+        //         }
+        //         pos = 0;
+        //         checksum = 0;
+        //         payloadLength = 0;
+        //     }
+        //     break;
+        case 5:
             checksum += c;
-            pos++;
-            break;
+            m_data += (c << payloadLength*8);
+            payloadLength++;
 
-        case 6: 
-            if (payloadLength == 2) { //data_msb
-                m_data += 256 * c;
-                checksum += c;
+            if(payloadLength >= payloadLength){
+                // full data is received regardless number of bytes
                 pos++;
-            } else { // checksum 
-                if (c == (255 & checksum)) { // correct uart msg received
-                    ExecuteCommand();
-                    // ACK for short click
-                    if( (m_cmd == 1) && (m_data ==1)) {
-                        m_payload.resize(7);
-
-                        m_payload[0] = 0xA5;
-                        m_payload[1] = 0x5A;
-                        m_payload[2] = 1;
-                        m_payload[3] = 1;
-                        m_payload[4] = 0;
-                        m_payload[5] = 0xF1;
-                        m_payload[6] = 0;
-                        for (int i = 0; i < 6; i++)
-                            m_payload[6] = (m_payload[6] + m_payload[i]);
-                        m_serialPort.write(m_payload);
-                        m_serialPort.flush();
-                    }
-                } else {
-                    printf("checksum wrong!\n");
-                }
-                pos = 0;
-                checksum = 0;
-                payloadLength = 0;
             }
+
             break;
+
         case 7: // checksum
             if(c == (255 & checksum)){// correct uart msg received
                 ExecuteCommand();
@@ -196,6 +208,20 @@ void McuInfo::ExecuteCommand()
     {
     case 1: //button
         emit buttonChanged();
+        if(m_data == 1){
+            m_payload.resize(7);
+            m_payload[0] = 0xA5;
+            m_payload[1] = 0x5A;
+            m_payload[2] = 1;
+            m_payload[3] = 1;
+            m_payload[4] = 0;
+            m_payload[5] = 0xF1;
+            m_payload[6] = 0;
+            for (int i = 0; i < 6; i++)
+                m_payload[6] = (m_payload[6] + m_payload[i]);
+            m_serialPort.write(m_payload);
+            m_serialPort.flush();
+        }
         break;
 
     case 2: //battery
