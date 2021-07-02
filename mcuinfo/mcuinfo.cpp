@@ -28,13 +28,41 @@ void McuInfo::start()
     emit statusChanged();
 }
 
-void McuInfo::confirmShutdown() 
+void McuInfo::getVersion() 
 {
     m_payload.resize(7);
 
     // header 
-    m_payload[0] = 0xA5;
-    m_payload[1] = 0x5A;
+    m_payload[0] = 0x5A;
+    m_payload[1] = 0xA5;
+
+    // msg type
+    m_payload[2] = 1;
+
+    // payload length 
+    m_payload[3] = 1;
+    m_payload[4] = 0;
+
+    // payload: get version 
+    m_payload[5] = 0xF6;
+
+    // CRC
+    m_payload[6] = 0; 
+    for (int i = 0; i < 6; i++)
+        m_payload[6] = (m_payload[6] + m_payload[i]);
+
+    // write to UART 
+    m_serialPort.write(m_payload);
+    m_serialPort.flush();
+}
+
+void McuInfo::confirmShutdown() 
+{
+    m_payload.resize(7);
+
+    // header
+    m_payload[0] = 0x5A;
+    m_payload[1] = 0xA5;
 
     // msg type
     m_payload[2] = 1;
@@ -60,9 +88,9 @@ void McuInfo::cancelShutdown()
 {
     m_payload.resize(7);
 
-    // header 
-    m_payload[0] = 0xA5;
-    m_payload[1] = 0x5A;
+    // header
+    m_payload[0] = 0x5A;
+    m_payload[1] = 0xA5;
 
     // msg type 
     m_payload[2] = 1;
@@ -137,47 +165,12 @@ void McuInfo::handleReadyRead()
             pos++;
             break;
 
-        // case 5: //data 
-        //     m_data += c;
-        //     checksum += c;
-        //     pos++;
-        //     break;
-
-        // case 6: 
-        //     if (payloadLength == 2) { //data_msb
-        //         m_data += 256 * c;
-        //         checksum += c;
-        //         pos++;
-        //     } else { // checksum 
-        //         if (c == (255 & checksum)) { // correct uart msg received
-        //             ExecuteCommand();
-        //             // ACK for short click
-        //             if( (m_cmd == 1) && (m_data ==1)) {
-        //                 m_payload.resize(7);
-
-        //                 m_payload[0] = 0xA5;
-        //                 m_payload[1] = 0x5A;
-        //                 m_payload[2] = 1;
-        //                 m_payload[3] = 1;
-        //                 m_payload[4] = 0;
-        //                 m_payload[5] = 0xF1;
-        //                 m_payload[6] = 0;
-        //                 for (int i = 0; i < 6; i++)
-        //                     m_payload[6] = (m_payload[6] + m_payload[i]);
-        //                 m_serialPort.write(m_payload);
-        //                 m_serialPort.flush();
-        //             }
-        //         } else {
-        //             printf("checksum wrong!\n");
-        //         }
-        //         pos = 0;
-        //         checksum = 0;
-        //         payloadLength = 0;
-        //     }
-        //     break;
         case 5:
             checksum += c;
-            m_data += (c << data_bytes*8);
+            if (m_cmd==4) 
+                m_version.append(static_cast<char>(c));
+            else
+                m_data += (c << data_bytes*8);
             data_bytes++;
 
             if(data_bytes >= payloadLength){
@@ -197,6 +190,7 @@ void McuInfo::handleReadyRead()
             pos = 0;
             checksum = 0;
             payloadLength = 0;
+            m_version = "";
             break;
         }
     }
@@ -207,12 +201,12 @@ void McuInfo::ExecuteCommand()
 {
     switch (m_cmd)
     {
-    case 1: //button
+    case 1: // button
         emit buttonChanged();
         if(m_data == 1){
             m_payload.resize(7);
-            m_payload[0] = 0xA5;
-            m_payload[1] = 0x5A;
+            m_payload[0] = 0x5A;
+            m_payload[1] = 0xA5;
             m_payload[2] = 1;
             m_payload[3] = 1;
             m_payload[4] = 0;
@@ -225,12 +219,15 @@ void McuInfo::ExecuteCommand()
         }
         break;
 
-    case 2: //battery
+    case 2: // battery
         emit batteryChanged();
         break;
 
-    case 3: //charging
+    case 3: // charging
         emit chargeChanged();
+        break;
+    case 4: // version
+        emit versionChanged();
         break;
     }
 }

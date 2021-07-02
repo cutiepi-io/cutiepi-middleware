@@ -13,6 +13,7 @@ class McuInfo : public QQuickItem
     Q_PROPERTY(int battery READ battery NOTIFY batteryChanged)
     Q_PROPERTY(int button READ button NOTIFY buttonChanged)
     Q_PROPERTY(int charge READ charge NOTIFY chargeChanged)
+    Q_PROPERTY(QString version READ version NOTIFY versionChanged)
     Q_PROPERTY(bool status READ button NOTIFY statusChanged)
 
 public:
@@ -22,10 +23,12 @@ public:
     Q_INVOKABLE void start();
     Q_INVOKABLE void confirmShutdown();
     Q_INVOKABLE void cancelShutdown();
+    Q_INVOKABLE void getVersion();
 
     int battery() const {return m_data;}
     int button() const { return m_data; }
     int charge() const { return m_data; }
+    QString version() const { return m_version; }
     bool status() const {return m_status;}
 
     void setPortName(QString portname)
@@ -42,6 +45,7 @@ signals:
     void batteryChanged();
     void buttonChanged();
     void chargeChanged();
+    void versionChanged();
     void statusChanged();
 
 private:
@@ -55,8 +59,8 @@ private:
     int pos=0;
     int checksum=0;
     int m_cmd=0;
-    // int m_data=0;
     long m_data=0;
+    QString m_version = "";
     int data_bytes=0;
     int payloadLength=0;
 
