@@ -4,7 +4,7 @@ QT += qml quick serialport
 CONFIG += plugin c++11
 
 TARGET = $$qtLibraryTarget($$TARGET)
-uri = com.mycompany.qmlcomponents
+uri = McuInfo
 
 # Input
 SOURCES += \
