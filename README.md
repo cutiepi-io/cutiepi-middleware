@@ -10,6 +10,7 @@
 | Charge event  | 3 | Charging: 0x4 | ACK: 0xF4 |
 |               | 3 | Not charging: 0x5 | ACK: 0xF5 | 
 | Version event | 4 |                       | 0xF6  |
+| Cutoff event  | 5 |                       | 0xF7  |
 
 ### Payload format 
 
