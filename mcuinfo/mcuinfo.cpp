@@ -225,6 +225,21 @@ void McuInfo::ExecuteCommand()
 
     case 3: // charging
         emit chargeChanged();
+        m_payload.resize(7);
+        m_payload[0] = 0x5A;
+        m_payload[1] = 0xA5;
+        m_payload[2] = 1;
+        m_payload[3] = 1;
+        m_payload[4] = 0;
+        if (m_data == 4)
+            m_payload[5] = 0xF4;
+        else
+            m_payload[5] = 0xF5;
+        m_payload[6] = 0;
+        for (int i = 0; i < 6; i++)
+            m_payload[6] = (m_payload[6] + m_payload[i]);
+        m_serialPort.write(m_payload);
+        m_serialPort.flush();
         break;
     case 4: // version
         emit versionChanged();
