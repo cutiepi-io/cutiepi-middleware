@@ -6,6 +6,7 @@ int main(int argc, char **argv) {
     QSerialPort m_serialPort;
     QByteArray m_payload;
 
+if (QString(argv[1]) != "reboot") { 
     m_serialPort.setPortName("/dev/ttyS0");
     m_serialPort.setBaudRate(QSerialPort::Baud115200, QSerialPort::AllDirections);
     m_serialPort.open(QIODevice::ReadWrite);
@@ -27,6 +28,7 @@ int main(int argc, char **argv) {
     // write to UART 
     m_serialPort.write(m_payload);
     m_serialPort.flush();
+}
 
     return app.exec();
 }
