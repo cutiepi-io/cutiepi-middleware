@@ -1,0 +1,10 @@
+[Unit]
+Description=CutiePi MCU proxy service
+After=dbus.target
+
+[Service]
+Restart=always
+ExecStart=/usr/local/bin/cutiepi-mcuproxy
+
+[Install]
+WantedBy=multi-user.target

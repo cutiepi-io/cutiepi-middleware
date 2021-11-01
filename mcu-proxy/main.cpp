@@ -151,6 +151,22 @@ private:
                 m_serialPort.write(m_payload);
                 m_serialPort.flush();
             }
+
+            if (m_data == 3)
+            {
+                m_payload.resize(7);
+                m_payload[0] = 0x5A;
+                m_payload[1] = 0xA5;
+                m_payload[2] = 1;
+                m_payload[3] = 1;
+                m_payload[4] = 0;
+                m_payload[5] = 0xFC;
+                m_payload[6] = 0;
+                for (int i = 0; i < 6; i++)
+                    m_payload[6] = (m_payload[6] + m_payload[i]);
+                m_serialPort.write(m_payload);
+                m_serialPort.flush();
+            }
             break;
 
         case 2: // battery
@@ -194,7 +210,7 @@ int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
     McuProxy proxy;
 
-    QDBusConnection connection = QDBusConnection::sessionBus();
+    QDBusConnection connection = QDBusConnection::systemBus();
 
     if(!connection.registerService("io.cutiepi.service")){
         qDebug() << connection.lastError().message();

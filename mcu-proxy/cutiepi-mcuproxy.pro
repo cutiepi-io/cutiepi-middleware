@@ -1,5 +1,5 @@
 TEMPLATE = app
-TARGET = mcu-proxy
+TARGET = cutiepi-mcuproxy
 QT += core gui dbus serialport
 
 SOURCES += main.cpp
