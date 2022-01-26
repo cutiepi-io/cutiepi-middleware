@@ -128,10 +128,7 @@ void get_battery_info(BatteryInfo* info)
         msg = dbus_connection_pop_message(conn);
 
         if (!msg)
-        {
-            sleep(1);
             continue;
-        }
 
         if (dbus_message_is_signal(msg, "io.cutiepi.interface", "updateEvent"))
         {
