@@ -2,8 +2,6 @@
 
 lxpanel plugin for the CutiePi battery.
 
-[Original repo](https://github.com/BlackLight/cutiepi-lxpanel-battery)
-
 ## Installation from sources
 
 1. Install the dependencies
@@ -11,7 +9,7 @@ lxpanel plugin for the CutiePi battery.
 ```shell
 $ sudo apt install \
     build-essential autoconf automake libtool intltool \
-    libglib2.0-dev libgtk2.0-dev lxpanel-dev
+    libglib2.0-dev libgtk2.0-dev lxpanel-dev libdbus-glib-1-dev
 ```
 
 2. Clone the repo, compile and install the plugin
@@ -20,6 +18,7 @@ $ sudo apt install \
 $ git clone https://github.com/BlackLight/cutiepi-lxpanel-battery.git
 $ cd cutiepi-lxpanel-battery
 $ ./autogen.sh
+$ ./configure
 $ make
 $ sudo make install
 ```
@@ -39,4 +38,8 @@ $ lxpanelctl restart
 3. Click `Add`
 
 4. Select `CutiePi battery`
+
+## Credit
+
+[Original repo](https://github.com/BlackLight/cutiepi-lxpanel-battery) by [Fabio Manganiello](https://github.com/BlackLight).
 
