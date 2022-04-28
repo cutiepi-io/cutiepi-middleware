@@ -194,6 +194,8 @@ private:
         case 4: // version
             emit updateEvent(QString("version"), (int) m_data);
             break;
+        default:
+	        emit updateEvent(QString("unknown"), (int) m_data);
         }
     };
     void handleError(QSerialPort::SerialPortError serialPortError)
@@ -210,7 +212,7 @@ int main(int argc, char **argv)
     QCoreApplication app(argc, argv);
     McuProxy proxy;
 
-    QDBusConnection connection = QDBusConnection::systemBus();
+    QDBusConnection connection = QDBusConnection::sessionBus();
 
     if(!connection.registerService("io.cutiepi.service")){
         qDebug() << connection.lastError().message();
