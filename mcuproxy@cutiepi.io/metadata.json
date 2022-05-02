@@ -3,6 +3,9 @@
   "description": "Battery Indicator for CutiePi tablet",
   "uuid": "mcuproxy@cutiepi.io",
   "shell-version": [
-    "3.38"
+    "3.38",
+    "40",
+    "41",
+    "42"
   ]
 }
